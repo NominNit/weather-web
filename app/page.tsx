@@ -1,103 +1,161 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// Define the type for the weather data
+interface WeatherData {
+  current: {
+    dt: number;
+    temp: number;
+    weather: { description: string; icon: string }[];
+    wind_speed: number;
+    wind_deg: number;
+    humidity: number;
+    visibility: number;
+    pressure: number;
+  };
+  daily: {
+    dt: number;
+    temp: { max: number; min: number };
+    weather: { description: string; icon: string }[];
+  }[];
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const fetchWeather = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get<WeatherData>(
+        `https://api.openweathermap.org/data/3.0/onecall?lat=47.9212&lon=106.9186&lang=mn&appid=${process.env.API_KEY}&units=metric`
+      );
+      setWeatherData(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching weather:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeather();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!weatherData) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Error fetching weather data</div>;
+  }
+
+  // Current weather
+  const currentWeather = weatherData.current;
+  const dailyForecast = weatherData.daily.slice(0, 5); // 5-day forecast
+
+  // Format date for display
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return `${date.toLocaleDateString('en-US', { weekday: 'short' })}, ${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })}`;
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row">
+      {/* Left Panel: Current Weather */}
+      <div className="w-full md:w-1/3 bg-gray-800 p-6 flex flex-col justify-between">
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <input
+              type="text"
+              placeholder="Search for places"
+              className="bg-gray-700 text-white p-2 rounded focus:outline-none"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <button className="bg-gray-600 p-2 rounded">
+              <svg className="w-5 h-5" fill="white" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+              </svg>
+            </button>
+          </div>
+          <div className="text-center">
+            <img
+              src={`http://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`}
+              alt="Weather icon"
+              className="mx-auto w-24 h-24"
+            />
+            <h1 className="text-6xl font-bold mt-4">{Math.round(currentWeather.temp)}°C</h1>
+            <p className="text-xl mt-2 capitalize">{currentWeather.weather[0].description}</p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="mt-6">
+          <p className="text-sm">TODAY • {formatDate(currentWeather.dt)}</p>
+          <p className="text-sm mt-2 flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="white" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg>
+            Ulaanbaatar
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel: Forecast and Highlights */}
+      <div className="w-full md:w-2/3 p-6">
+        <div className="flex justify-end mb-4">
+          <button className="bg-gray-700 p-2 rounded-full mr-2">°C</button>
+          <button className="bg-gray-600 p-2 rounded-full">°F</button>
+        </div>
+
+        {/* 5-Day Forecast */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
+          {dailyForecast.map((day, index) => (
+            <div key={index} className="bg-gray-800 p-4 rounded-lg text-center">
+              <p className="text-sm">{formatDate(day.dt)}</p>
+              <img
+                src={`http://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`}
+                alt="Weather icon"
+                className="mx-auto w-12 h-12"
+              />
+              <p className="text-lg">{Math.round(day.temp.max)}°C</p>
+              <p className="text-sm text-gray-400">{Math.round(day.temp.min)}°C</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Today's Highlights */}
+        <h2 className="text-xl font-semibold mb-4">Today's Highlights</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-sm">Wind status</p>
+            <p className="text-2xl font-bold">{Math.round(currentWeather.wind_speed * 3.6)} km/h</p>
+            <p className="text-sm text-gray-400 flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="white" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+              </svg>
+              {currentWeather.wind_deg}°
+            </p>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-sm">Humidity</p>
+            <p className="text-2xl font-bold">{currentWeather.humidity}%</p>
+            <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+              <div
+                className="bg-yellow-400 h-2 rounded-full"
+                style={{ width: `${currentWeather.humidity}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-sm">Visibility</p>
+            <p className="text-2xl font-bold">{Math.round(currentWeather.visibility / 1609)} miles</p>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-sm">Air Pressure</p>
+            <p className="text-2xl font-bold">{currentWeather.pressure} mb</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
