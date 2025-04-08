@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Define the type for the weather data
 interface WeatherData {
   current: {
     dt: number;
@@ -30,12 +29,17 @@ export default function Home() {
     setLoading(true);
     try {
       const response = await axios.get<WeatherData>(
-        `https://api.openweathermap.org/data/3.0/onecall?lat=47.9212&lon=106.9186&lang=mn&appid=${process.env.API_KEY}&units=metric`
+        `https://api.openweathermap.org/data/3.0/onecall?lat=47.9212&lon=106.9186&appid=${process.env.NEXT_PUBLIC_API_KEY}&units=metric`
       );
+      
       setWeatherData(response.data);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching weather:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Error fetching weather:', error.response?.data || error.message);
+      } else {
+        console.error('Unexpected error:', error);
+      }
       setLoading(false);
     }
   };
@@ -63,22 +67,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row font-sans">
       {/* Left Panel: Current Weather */}
       <div className="w-full md:w-1/3 bg-gray-800 p-6 flex flex-col justify-between">
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search for places"
-              className="bg-gray-700 text-white p-2 rounded focus:outline-none"
-            />
-            <button className="bg-gray-600 p-2 rounded">
-              <svg className="w-5 h-5" fill="white" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-              </svg>
-            </button>
-          </div>
           <div className="text-center">
             <img
               src={`http://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`}
@@ -103,8 +95,7 @@ export default function Home() {
       {/* Right Panel: Forecast and Highlights */}
       <div className="w-full md:w-2/3 p-6">
         <div className="flex justify-end mb-4">
-          <button className="bg-gray-700 p-2 rounded-full mr-2">°C</button>
-          <button className="bg-gray-600 p-2 rounded-full">°F</button>
+          <p className="bg-gray-700 p-2 rounded-full">°C</p>
         </div>
 
         {/* 5-Day Forecast */}
