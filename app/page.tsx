@@ -31,7 +31,7 @@ export default function Home() {
       const response = await axios.get<WeatherData>(
         `https://api.openweathermap.org/data/3.0/onecall?lat=47.9212&lon=106.9186&appid=${process.env.NEXT_PUBLIC_API_KEY}&units=metric`
       );
-      
+    
       setWeatherData(response.data);
       setLoading(false);
     } catch (error) {
@@ -82,8 +82,8 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-6">
-          <p className="text-sm">TODAY • {formatDate(currentWeather.dt)}</p>
-          <p className="text-sm mt-2 flex items-center">
+          <p className="text-lg">TODAY • {formatDate(currentWeather.dt)}</p>
+          <p className="text-lg mt-2 flex items-center">
             <svg className="w-5 h-5 mr-2" fill="white" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
             </svg>
@@ -92,13 +92,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Right Panel: Forecast and Highlights */}
-      <div className="w-full md:w-2/3 p-6">
-        <div className="flex justify-end mb-4">
-          <p className="bg-gray-700 p-2 rounded-full">°C</p>
-        </div>
-
-        {/* 5-Day Forecast */}
+      {/* Right panel: Forecast*/}
+      <div className="w-full md:w-2/3 p-6 m-2">
+        {/* 5 day forecast */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
           {dailyForecast.map((day, index) => (
             <div key={index} className="bg-gray-800 p-4 rounded-lg text-center">
@@ -112,39 +108,6 @@ export default function Home() {
               <p className="text-sm text-gray-400">{Math.round(day.temp.min)}°C</p>
             </div>
           ))}
-        </div>
-
-        {/* Today's Highlights */}
-        <h2 className="text-xl font-semibold mb-4">Today's Highlights</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-sm">Wind status</p>
-            <p className="text-2xl font-bold">{Math.round(currentWeather.wind_speed * 3.6)} km/h</p>
-            <p className="text-sm text-gray-400 flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="white" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-              </svg>
-              {currentWeather.wind_deg}°
-            </p>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-sm">Humidity</p>
-            <p className="text-2xl font-bold">{currentWeather.humidity}%</p>
-            <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
-              <div
-                className="bg-yellow-400 h-2 rounded-full"
-                style={{ width: `${currentWeather.humidity}%` }}
-              ></div>
-            </div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-sm">Visibility</p>
-            <p className="text-2xl font-bold">{Math.round(currentWeather.visibility / 1609)} miles</p>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-sm">Air Pressure</p>
-            <p className="text-2xl font-bold">{currentWeather.pressure} mb</p>
-          </div>
         </div>
       </div>
     </div>
